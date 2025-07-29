@@ -1,4 +1,5 @@
 #!/bin/bash
+# edit by tetraloba 2025/07/22
 #
 # Copyright 2016 Istio Authors. All Rights Reserved.
 #
@@ -108,59 +109,22 @@ esac
 # See: https://github.com/istio/istio/issues/15714 for details.
 # k8-opt is the output directory for x86_64 optimized builds (-c opt, so --config=release-symbol and --config=release).
 # k8-dbg is the output directory for -c dbg builds.
-for config in release release-symbol asan debug
-do
-  case $config in
-    "release" )
-      CONFIG_PARAMS="--config=release"
-      BINARY_BASE_NAME="${BASE_BINARY_NAME}-alpha"
-      # shellcheck disable=SC2086
-      BAZEL_OUT="$(bazel info ${BAZEL_BUILD_ARGS} output_path)/${ARCH_NAME}-opt/bin"
-      ;;
-    "release-symbol")
-      CONFIG_PARAMS="--config=release-symbol"
-      BINARY_BASE_NAME="${BASE_BINARY_NAME}-symbol"
-      # shellcheck disable=SC2086
-      BAZEL_OUT="$(bazel info ${BAZEL_BUILD_ARGS} output_path)/${ARCH_NAME}-opt/bin"
-      ;;
-    "asan")
-      # Asan is skipped on ARM64
-      if [[ "$(uname -m)" != "aarch64" ]]; then
-        # NOTE: libc++ is dynamically linked in this build.
-        CONFIG_PARAMS="${BAZEL_CONFIG_ASAN} --config=release-symbol"
-        BINARY_BASE_NAME="${BASE_BINARY_NAME}-asan"
-        # shellcheck disable=SC2086
-        BAZEL_OUT="$(bazel info ${BAZEL_BUILD_ARGS} output_path)/${ARCH_NAME}-opt/bin"
-      fi
-      ;;
-    "debug")
-      CONFIG_PARAMS="-c dbg"
-      BINARY_BASE_NAME="${BASE_BINARY_NAME}-debug"
-      # shellcheck disable=SC2086
-      BAZEL_OUT="$(bazel info ${BAZEL_BUILD_ARGS} output_path)/${ARCH_NAME}-dbg/bin"
-      ;;
-  esac
+CONFIG_PARAMS="--config=release"
+BINARY_BASE_NAME="${BASE_BINARY_NAME}-alpha"
+# shellcheck disable=SC2086
+BAZEL_OUT="$(bazel info ${BAZEL_BUILD_ARGS} output_path)/${ARCH_NAME}-opt/bin"
 
-  export BUILD_CONFIG=${config}
+export BUILD_CONFIG=${config}
 
-  echo "Building ${config} proxy"
-  BINARY_NAME="${HOME}/${BINARY_BASE_NAME}-${SHA}${ARCH_SUFFIX}.tar.gz"
-  DWP_NAME="${HOME}/${BINARY_BASE_NAME}-${SHA}${ARCH_SUFFIX}.dwp"
-  SHA256_NAME="${HOME}/${BINARY_BASE_NAME}-${SHA}${ARCH_SUFFIX}.sha256"
-  # shellcheck disable=SC2086
-  bazel build ${BAZEL_BUILD_ARGS} ${CONFIG_PARAMS} //:envoy_tar //:envoy.dwp
-  BAZEL_TARGET="${BAZEL_OUT}/envoy_tar.tar.gz"
-  DWP_TARGET="${BAZEL_OUT}/envoy.dwp"
-  cp -f "${BAZEL_TARGET}" "${BINARY_NAME}"
-  cp -f "${DWP_TARGET}" "${DWP_NAME}"
-  sha256sum "${BINARY_NAME}" > "${SHA256_NAME}"
+echo "Building ${config} proxy"
+BINARY_NAME="${HOME}/${BINARY_BASE_NAME}-${SHA}${ARCH_SUFFIX}.tar.gz"
+# shellcheck disable=SC2086
+bazel build ${BAZEL_BUILD_ARGS} ${CONFIG_PARAMS} //:envoy_tar
+BAZEL_TARGET="${BAZEL_OUT}/envoy_tar.tar.gz"
+cp -f "${BAZEL_TARGET}" "${BINARY_NAME}"
 
-  if [ -n "${DST}" ]; then
-    # Copy it to the bucket.
-    echo "Copying ${BINARY_NAME} ${SHA256_NAME} to ${DST}/"
-    gsutil cp "${BINARY_NAME}" "${SHA256_NAME}" "${DWP_NAME}" "${DST}/"
-  fi
-done
+
+
 
 # Exit early to skip wasm build
 if [ "${BUILD_ENVOY_BINARY_ONLY}" -eq 1 ]; then
