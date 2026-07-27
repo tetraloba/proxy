@@ -22,11 +22,11 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # 1. Determine SHA256 `wget https://github.com/envoyproxy/envoy/archive/$COMMIT.tar.gz && sha256sum $COMMIT.tar.gz`
 # 2. Update .bazelversion, envoy.bazelrc and .bazelrc if needed.
 
-ENVOY_SHA = "8a1e23cae3a1a0ee4d2da2e77abc67f5d8bfecb3"
+ENVOY_SHA = "8b7a0d2e99c44ce3cb63e5da85d109a929f8d5e3"
 
 # ENVOY_SHA=
 # wget https://github.com/tetraloba/envoy/archive/${ENVOY_SHA}.tar.gz && sha256sum ${ENVOY_SHA}.tar.gz && rm ${ENVOY_SHA}.tar.gz
-ENVOY_SHA256 = "2a5330c88a71c102096ce67b25a8e7d4dfa9bd14e443b69574163e26bdcaf9a7"
+ENVOY_SHA256 = "c8a8bf275f09954dea5d7e8b36b5dc5c894b6cdefe276ba5e88c5e588b82e0f0"
 
 ENVOY_ORG = "tetraloba"
 
